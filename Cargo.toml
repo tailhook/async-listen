@@ -12,6 +12,7 @@ homepage = "https://github.com/tailhook/async-server"
 documentation = "https://docs.rs/async-server"
 version = "0.1.0"
 authors = ["Paul Colomiets <paul@colomiets.name>"]
+edition = "2018"
 
 [dependencies]
 async-std = "1.4"
