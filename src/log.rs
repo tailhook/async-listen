@@ -9,7 +9,9 @@ use crate::is_transient_error;
 
 /// A stream combinator that logs errors which aren't transient
 ///
-/// See [`ListenExt`][`#method.`] for more info.
+/// See
+/// [`ListenExt::log_warnings`](../trait.ListenExt.html#method.log_warnings)
+/// for more info.
 pub struct LogWarnings<S, F> {
     stream: S,
     logger: F,

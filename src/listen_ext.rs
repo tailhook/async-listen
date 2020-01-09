@@ -1,8 +1,10 @@
 use std::io;
+use std::time::Duration;
 
 use async_std::stream::Stream;
 
 use crate::log;
+use crate::sleep;
 
 
 /// An extension trait that provides necessary combinators for turning
@@ -52,6 +54,52 @@ pub trait ListenExt: Stream {
               F: FnMut(&io::Error),
     {
         log::LogWarnings::new(self, f)
+    }
+
+    /// Handle errors and return infallible stream
+    ///
+    /// There are two types of errors:
+    ///
+    /// * [`transient`](fn.is_transient_error.html) which may be ignored
+    /// * warnings which keep socket in accept queue after the error
+    ///
+    /// We ignore transient errors entirely, and timeout for a `sleep_amount`
+    /// on stick ones.
+    ///
+    /// One example of warning is `EMFILE: too many open files`. In this
+    /// case, if we sleep for some amount, so there is a chance that other
+    /// connection or some file descriptor is closed in the meantime and we
+    /// can accept another connection.
+    ///
+    /// Also in the case of warnings, it's usually a good idea to log them
+    /// (i.e. so file descritor limit or max connection is adjusted by user).
+    /// Use [`log_warnings`](#method.log_warnings) to do this.
+    ///
+    /// `while let Some(s) = stream.handle_errors(d).next().await {...}`
+    /// is equivalent of:
+    ///
+    /// ```ignore
+    /// while let Some(res) = stream.next().await? {
+    ///     let s = match res {
+    ///         Ok(s) => s,
+    ///         Err(e) => {
+    ///             if !is_traisient_error(e) {
+    ///                 task::sleep(d);
+    ///             }
+    ///             continue;
+    ///         }
+    ///     };
+    ///     # ...
+    /// }
+    /// ```
+    ///
+    /// # Example
+    ///
+    fn handle_errors<I>(self, sleep_on_warning: Duration)
+        -> sleep::HandleErrors<Self>
+        where Self: Stream<Item=Result<I, io::Error>> + Sized,
+    {
+        sleep::HandleErrors::new(self, sleep_on_warning)
     }
 }
 

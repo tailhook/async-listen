@@ -13,6 +13,11 @@ use std::io;
 /// performed.  The timeout is useful to handle resource exhaustion errors
 /// like ENFILE and EMFILE: file descriptor might be released after some time
 /// but the error will be the same if we continue to accept in a tight loop.
+///
+/// This function is most likely should not be used directly, but rather
+/// through one of the following combinators:
+/// * [`log_warnings`](trait.ListenExt.html#method.log_warnings)
+/// * [`handle_errors`](trait.ListenExt.html#method.handle_errors)
 pub fn is_transient_error(e: &io::Error) -> bool {
     e.kind() == io::ErrorKind::ConnectionRefused ||
     e.kind() == io::ErrorKind::ConnectionAborted ||
