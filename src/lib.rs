@@ -24,9 +24,11 @@
 //! * Unification of Tcp and Unix sockets
 //!
 //! ```no_run
-//! use std::error::Error;
-//! use std::time::Duration;
 //! use std::env::args;
+//! use std::error::Error;
+//! use std::fs::remove_file;
+//! use std::io;
+//! use std::time::Duration;
 //!
 //! use async_std::task;
 //! use async_std::net::TcpListener;
@@ -35,9 +37,11 @@
 //!
 //! use async_server::{ListenExt, ByteStream, backpressure};
 //!
+//!
 //! fn main() -> Result<(), Box<dyn Error>> {
 //!     let (_, bp) = backpressure::new(10);
 //!     if args().any(|x| x == "--unix") {
+//!         remove_file("./example.sock").ok();
 //!         task::block_on(async {
 //!             let listener = UnixListener::bind("./example.sock").await?;
 //!             eprintln!("Accepting connections on ./example.sock");
@@ -59,17 +63,22 @@
 //!                 .handle_errors(Duration::from_millis(500))
 //!                 .backpressure_wrapper(bp);
 //!             while let Some(stream) = incoming.next().await {
-//!                 task::spawn(connection_loop(stream));
+//!                 task::spawn(async {
+//!                     if let Err(e) = connection_loop(stream).await {
+//!                         eprintln!("Error: {}", e);
+//!                     }
+//!                 });
 //!             }
 //!             Ok(())
 //!         })
 //!     }
 //! }
 //!
-//! async fn connection_loop(mut stream: ByteStream) {
+//! async fn connection_loop(mut stream: ByteStream) -> Result<(), io::Error> {
+//!     println!("Connected from {}", stream.peer_addr()?);
 //!     task::sleep(Duration::from_secs(5)).await;
-//!     stream.write_all("hello".as_bytes()).await
-//!         .map_err(|e| eprintln!("Write error: {}", e)).ok();
+//!     stream.write_all("hello\n".as_bytes()).await?;
+//!     Ok(())
 //! }
 //! ```
 #![warn(missing_debug_implementations)]
@@ -83,6 +92,6 @@ mod byte_stream;
 pub mod backpressure;
 pub mod wrapper_types;
 
-pub use byte_stream::ByteStream;
+pub use byte_stream::{ByteStream, PeerAddr};
 pub use error::is_transient_error;
 pub use listen_ext::ListenExt;
