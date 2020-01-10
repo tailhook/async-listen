@@ -5,6 +5,7 @@ use async_std::stream::Stream;
 
 use crate::log;
 use crate::sleep;
+use crate::backpressure;
 
 
 /// An extension trait that provides necessary combinators for turning
@@ -100,6 +101,126 @@ pub trait ListenExt: Stream {
         where Self: Stream<Item=Result<I, io::Error>> + Sized,
     {
         sleep::HandleErrors::new(self, sleep_on_warning)
+    }
+
+    /// Apply a fixed backpressure to the the stream
+    ///
+    /// The output stream yields pairs of (token, stream). The token must
+    /// be kept alive as long as connection is still alive.
+    ///
+    /// `stream.backpressure(10)` is equivalent of:
+    /// ```ignore
+    /// let (tx, rx) = backpressure::new(10);
+    /// stream
+    ///     .apply_backpressure(rx)
+    ///     .map(|conn| (tx.token(), conn))
+    /// ```
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use std::time::Duration;
+    /// # use async_std::net::{TcpListener, TcpStream};
+    /// # use async_std::prelude::*;
+    /// # use async_std::task;
+    /// # fn main() -> std::io::Result<()> { task::block_on(async {
+    /// #
+    /// use async_server::ListenExt;
+    ///
+    /// let listener = TcpListener::bind("127.0.0.1:0").await?;
+    /// let mut incoming = listener.incoming()
+    ///     .handle_errors(Duration::from_millis(100))
+    ///     .backpressure(100);
+    ///
+    /// while let Some((token, stream)) = incoming.next().await {
+    ///     task::spawn(async {
+    ///         connection_loop(stream).await;
+    ///         drop(token);
+    ///     });
+    /// }
+    /// # async fn connection_loop(_stream: TcpStream) {
+    /// # }
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    ///
+    /// *Note:* the `drop` there is not needed you can use either:
+    ///
+    /// * `let _token = token;` inside `async` block, or
+    /// * `connection_loop(&token, stream)`,
+    ///
+    /// To achieve the same result. But `drop(token)` makes it explicit that
+    /// token is dropped only at that point, which is an important property to
+    /// achieve.
+    fn backpressure<I>(self, limit: usize)
+        -> backpressure::BackpressureToken<Self>
+        where Self: Stream<Item=I> + Sized,
+    {
+        let (_tx, rx) = backpressure::new(limit);
+        return backpressure::BackpressureToken::new(self, rx);
+    }
+
+    /// Apply a backpressure object to a stream
+    ///
+    /// This method is different from [`backpressure`](#method.backpressure) in
+    /// two ways:
+    ///
+    /// 1. It doesn't modify stream output
+    /// 2. External backpressure object may be used to change limit at runtime
+    ///
+    /// With the greater power comes greater responsibility, though. Here are
+    /// some things to remember when using the method:
+    ///
+    /// 1. You must create a token for each connection (see example).
+    /// 2. Token *should* be created before yielding to a main loop, otherwise
+    ///    limit can be exhausted at times.
+    /// 2. Token should be kept alive as long as the connection is alive.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use std::time::Duration;
+    /// # use async_std::net::{TcpListener, TcpStream};
+    /// # use async_std::prelude::*;
+    /// # use async_std::task;
+    /// # fn main() -> std::io::Result<()> { task::block_on(async {
+    /// #
+    /// use async_server::ListenExt;
+    /// use async_server::backpressure;
+    ///
+    /// let listener = TcpListener::bind("127.0.0.1:0").await?;
+    /// let (tx, rx) = backpressure::new(10);
+    /// let mut incoming = listener.incoming()
+    ///     .handle_errors(Duration::from_millis(100))
+    ///     .apply_backpressure(rx);
+    ///
+    /// while let Some(stream) = incoming.next().await {
+    ///     let token = tx.token();  // should be created before spawn
+    ///     task::spawn(async {
+    ///         connection_loop(stream).await;
+    ///         drop(token);  // should be dropped after
+    ///     });
+    /// }
+    /// # async fn connection_loop(_stream: TcpStream) {
+    /// # }
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    ///
+    /// *Note:* the `drop` there is not needed you can use either:
+    ///
+    /// * `let _token = token;` inside `async` block, or
+    /// * `connection_loop(&token, stream)`,
+    ///
+    /// To achieve the same result. But `drop(token)` makes it explicit that
+    /// token is dropped only at that point, which is an important property to
+    /// achieve. Also don't create token in async block as it makes
+    /// backpressure enforcing unreliable.
+    fn apply_backpressure<I>(self, backpressure: backpressure::Receiver)
+        -> backpressure::Backpressure<Self>
+        where Self: Stream<Item=I> + Sized,
+    {
+        return backpressure::Backpressure::new(self, backpressure);
     }
 }
 

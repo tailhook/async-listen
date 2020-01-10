@@ -16,3 +16,6 @@ edition = "2018"
 
 [dependencies]
 async-std = "1.4"
+
+[dev-dependencies]
+rand = "0.7.2"

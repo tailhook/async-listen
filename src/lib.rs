@@ -23,6 +23,7 @@ mod error;
 mod listen_ext;
 mod log;
 mod sleep;
+pub mod backpressure;
 pub mod wrapper_types;
 
 pub use error::is_transient_error;
