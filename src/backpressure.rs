@@ -63,7 +63,9 @@ pub struct HasCapacity<'a> {
     recv: &'a mut Receiver,
 }
 
-/// The control
+/// The handle that controls backpressure
+///
+/// It can be used to create tokens, changing limit and getting metrics.
 ///
 /// See [`new`](fn.new.html) for more details
 #[derive(Clone)]
@@ -116,6 +118,18 @@ impl Sender {
             }
         }
     }
+
+    /// Returns the number of currently active tokens
+    ///
+    /// Can return a value larger than limit if tokens are created manually.
+    ///
+    /// This can be used for metrics or debugging. You should not rely on
+    /// this value being in sync. There is also no way to wake-up when this
+    /// value is lower than limit, also see
+    /// [`has_capacity`](struct.Receiver.html#method.has_capacity).
+    pub fn get_active_tokens(&self) -> usize {
+        self.inner.active.load(Ordering::Relaxed)
+    }
 }
 
 impl Receiver {
@@ -127,7 +141,11 @@ impl Receiver {
         }
     }
 
-    /// Return future which resolves when there is less then limit tokens
+    /// Return future which resolves when the current number active of tokens
+    /// is less than a limit
+    ///
+    /// If you create tokens in different task than the task that waits
+    /// on `HasCapacity` there is a race condition.
     pub fn has_capacity(&mut self) -> HasCapacity {
         HasCapacity { recv: self }
     }
