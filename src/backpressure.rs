@@ -4,6 +4,7 @@
 //! [`ListenExt`](../trait.ListenExt.html) trait methods:
 //! * [`backpressure`](../trait.ListenExt.html#method.backpressure)
 //! * [`apply_backpressure`](../trait.ListenExt.html#method.apply_backpressure)
+//! * [`backpressure_wrapper`](../trait.ListenExt.html#method.backpressure_wrapper)
 //!
 //! Also take a look at [`backpressure::new`](fn.new.html) for the low-level
 //! interface.
@@ -16,6 +17,8 @@ use std::sync::{Arc, Mutex, TryLockError};
 use async_std::stream::Stream;
 use async_std::future::Future;
 use async_std::task::{Poll, Context, Waker};
+
+use crate::byte_stream::ByteStream;
 
 
 struct Inner {
@@ -30,6 +33,13 @@ struct Inner {
 /// [`ListenExt::backpressure`](../trait.ListenExt.html#method.backpressure)
 /// for more info.
 pub struct BackpressureToken<S>(Backpressure<S>);
+
+/// A stream combinator that applies backpressure and yields ByteStream
+///
+/// See
+/// [`ListenExt::backpressure_wrapper`](../trait.ListenExt.html#method.backpressure_wrapper)
+/// for more info.
+pub struct BackpressureWrapper<S>(Backpressure<S>);
 
 /// A stream combinator that applies backpressure and yields a token
 ///
@@ -68,6 +78,7 @@ pub struct Token {
 
 impl<S: Unpin> Unpin for Backpressure<S> {}
 impl<S: Unpin> Unpin for BackpressureToken<S> {}
+impl<S: Unpin> Unpin for BackpressureWrapper<S> {}
 
 impl Sender {
     /// Acquire a backpressure token
@@ -180,6 +191,39 @@ impl<S> BackpressureToken<S> {
         -> BackpressureToken<S>
     {
         BackpressureToken(Backpressure::new(stream, backpressure))
+    }
+
+    /// Acquires a reference to the underlying stream that this combinator is
+    /// pulling from.
+    pub fn get_ref(&self) -> &S {
+        self.0.get_ref()
+    }
+
+    /// Acquires a mutable reference to the underlying stream that this
+    /// combinator is pulling from.
+    pub fn get_mut(&mut self) -> &mut S {
+        self.0.get_mut()
+    }
+
+    /// Acquires a pinned mutable reference to the underlying stream that this
+    /// combinator is pulling from.
+    pub fn get_pin_mut(self: Pin<&mut Self>) -> Pin<&mut S> {
+        unsafe {
+            self.map_unchecked_mut(|x| &mut x.0.stream)
+        }
+    }
+
+    /// Consumes this combinator, returning the underlying stream.
+    pub fn into_inner(self) -> S {
+        self.0.into_inner()
+    }
+}
+
+impl<S> BackpressureWrapper<S> {
+    pub(crate) fn new(stream: S, backpressure: Receiver)
+        -> BackpressureWrapper<S>
+    {
+        BackpressureWrapper(Backpressure::new(stream, backpressure))
     }
 
     /// Acquires a reference to the underlying stream that this combinator is
@@ -351,6 +395,15 @@ impl<S: fmt::Debug> fmt::Debug for BackpressureToken<S> {
     }
 }
 
+impl<S: fmt::Debug> fmt::Debug for BackpressureWrapper<S> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("BackpressureWrapper")
+            .field("stream", &self.0.stream)
+            .field("backpressure", &self.0.backpressure)
+            .finish()
+    }
+}
+
 impl<I, S> Stream for Backpressure<S>
     where S: Stream<Item=I> + Unpin
 {
@@ -382,5 +435,21 @@ impl<I, S> Stream for BackpressureToken<S>
         unsafe { self.as_mut().map_unchecked_mut(|x| &mut x.0) }
         .poll_next(cx)
         .map(|opt| opt.map(|conn| (self.0.backpressure.token(), conn)))
+    }
+}
+
+impl<I, S> Stream for BackpressureWrapper<S>
+    where S: Stream<Item=I> + Unpin,
+          ByteStream: From<(Token, I)>,
+{
+    type Item = ByteStream;
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context)
+        -> Poll<Option<Self::Item>>
+    {
+        unsafe { self.as_mut().map_unchecked_mut(|x| &mut x.0) }
+        .poll_next(cx)
+        .map(|opt| opt.map(|conn| {
+            ByteStream::from((self.0.backpressure.token(), conn))
+        }))
     }
 }

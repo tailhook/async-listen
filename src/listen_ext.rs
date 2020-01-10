@@ -5,7 +5,8 @@ use async_std::stream::Stream;
 
 use crate::log;
 use crate::sleep;
-use crate::backpressure;
+use crate::backpressure::{self, Token};
+use crate::byte_stream::ByteStream;
 
 
 /// An extension trait that provides necessary combinators for turning
@@ -108,6 +109,9 @@ pub trait ListenExt: Stream {
     /// The output stream yields pairs of (token, stream). The token must
     /// be kept alive as long as connection is still alive.
     ///
+    /// See [`backpressuree_wrapper`](#method.backpressure_wrapper) method for
+    /// a simple way of handling backpressure in a common case.
+    ///
     /// `stream.backpressure(10)` is equivalent of:
     /// ```ignore
     /// let (tx, rx) = backpressure::new(10);
@@ -176,6 +180,9 @@ pub trait ListenExt: Stream {
     ///    limit can be exhausted at times.
     /// 2. Token should be kept alive as long as the connection is alive.
     ///
+    /// See [`backpressure_wrapper`](#method.backpressure_wrapper) method for
+    /// a simple way of handling backpressure in a common case.
+    ///
     /// # Example
     ///
     /// ```no_run
@@ -211,7 +218,7 @@ pub trait ListenExt: Stream {
     ///
     /// * `let _token = token;` inside `async` block, or
     /// * `connection_loop(&token, stream)`,
-    ///
+
     /// To achieve the same result. But `drop(token)` makes it explicit that
     /// token is dropped only at that point, which is an important property to
     /// achieve. Also don't create token in async block as it makes
@@ -221,6 +228,76 @@ pub trait ListenExt: Stream {
         where Self: Stream<Item=I> + Sized,
     {
         return backpressure::Backpressure::new(self, backpressure);
+    }
+
+    /// Apply a backpressure object to a stream and yield ByteStream
+    ///
+    /// This method simplifies backpressure handling by hiding the token
+    /// inside the [`ByteStream`](struct.ByteStream.html) structure, so
+    /// it's lifetime is tied to the lifetime of the structure
+    ///
+    /// The wrapper works for `TcpListener` and `UdpListener` and returns
+    /// the same `ByteStream` structure on both of them. This helps working
+    /// with both kinds of sockets in a uniform way.
+    ///
+    /// Wrapping streams might incur tiny performance cost (although, this cast
+    /// is much smaller than cost of system calls involved in working with
+    /// sockets nevertheless). See [`backpressure`](#method.backpressure) and
+    /// [`apply_backpressure`](#method.apply_backpressure) for a wrapper-less
+    /// way of applying backpressure.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use std::time::Duration;
+    /// # use async_std::net::{TcpListener, TcpStream};
+    /// # use async_std::prelude::*;
+    /// # use async_std::task;
+    /// # fn main() -> std::io::Result<()> { task::block_on(async {
+    /// #
+    /// use async_server::{ListenExt, ByteStream, backpressure};
+    ///
+    /// let listener = TcpListener::bind("127.0.0.1:0").await?;
+    /// let (_, rx) = backpressure::new(10);
+    /// let mut incoming = listener.incoming()
+    ///     .handle_errors(Duration::from_millis(100))
+    ///     .backpressure_wrapper(rx);
+    ///
+    /// while let Some(stream) = incoming.next().await {
+    ///     task::spawn(connection_loop(stream));
+    /// }
+    /// # async fn connection_loop(_stream: ByteStream) {
+    /// # }
+    /// #
+    /// # Ok(()) }) }
+    /// ```
+    ///
+    /// # Notes
+    ///
+    /// The following examples are equivalent:
+    ///
+    /// ```ignore
+    /// let (_, bp) = backpressure::new(100);
+    /// stream.backpressure_wrapper(bp)
+    /// ```
+    ///
+    /// ```ignore
+    /// let (tx, rx) = backpressure::new(100);
+    /// stream.apply_backpressure(rx)
+    ///     .map(|stream| ByteStream::from((tx.token(), stream)))
+    /// ```
+    ///
+    /// ```ignore
+    /// stream.backpressure(100)
+    ///     .map(ByteStream::from)
+    /// ```
+    ///
+    fn backpressure_wrapper<I>(self, backpressure: backpressure::Receiver)
+        -> backpressure::BackpressureWrapper<Self>
+        where Self: Stream<Item=I> + Sized,
+              ByteStream: From<(Token, I)>,
+    {
+        return backpressure::BackpressureWrapper::new(self, backpressure);
     }
 }
 

@@ -23,8 +23,10 @@ mod error;
 mod listen_ext;
 mod log;
 mod sleep;
+mod byte_stream;
 pub mod backpressure;
 pub mod wrapper_types;
 
+pub use byte_stream::ByteStream;
 pub use error::is_transient_error;
 pub use listen_ext::ListenExt;
