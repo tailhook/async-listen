@@ -49,7 +49,7 @@ fn test_backpressure() {
     };
     let top = top.load(Ordering::SeqCst);
     println!("Top capacity {}", top);
-    assert!(50 < top && top <= 91);
+    assert!(30 < top && top <= 91);
 }
 
 #[test]
@@ -80,7 +80,7 @@ fn test_apply_backpressure() {
     };
     let top = top.load(Ordering::SeqCst);
     println!("Top capacity {}", top);
-    assert!(50 < top && top <= 91);
+    assert!(30 < top && top <= 91);
 }
 
 #[test]
@@ -117,5 +117,5 @@ fn test_change_limit() {
     };
     let top = top.load(Ordering::SeqCst);
     println!("Top capacity {}", top);
-    assert!(5 < top && top <= 61);
+    assert!(5 < top && top <= 81);
 }
