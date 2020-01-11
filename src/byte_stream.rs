@@ -77,6 +77,7 @@ impl ByteStream {
     }
 
     /// Create a bytestream for a unix socket
+    #[cfg(unix)]
     pub fn new_unix(token: Token, stream: UnixStream) -> ByteStream {
         ByteStream {
             stream: Stream::Unix(stream),
