@@ -167,6 +167,7 @@ impl From<(Token, TcpStream)> for ByteStream {
     }
 }
 
+#[cfg(unix)]
 impl From<(Token, UnixStream)> for ByteStream {
     fn from((token, stream): (Token, UnixStream)) -> ByteStream {
         ByteStream::new_unix(token, stream)
