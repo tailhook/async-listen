@@ -1,11 +1,11 @@
-//! # Async Server
+//! # Async Listen
 //!
 //! The crate contains various helpers for writing production-ready servers in
 //! rust using [async-std](https://async.rs/).
 //!
-//! [Docs](https://docs.rs/async-server/) |
-//! [Github](https://github.com/tailhook/async-server/) |
-//! [Crate](https://crates.io/crates/async-server)
+//! [Docs](https://docs.rs/async-listen/) |
+//! [Github](https://github.com/tailhook/async-listen/) |
+//! [Crate](https://crates.io/crates/async-listen)
 //!
 //! # Utilities
 //! * [ListenExt](trait.ListenExt.html) -- extension trait for stream of
@@ -35,7 +35,7 @@
 //! use async_std::os::unix::net::UnixListener;
 //! use async_std::prelude::*;
 //!
-//! use async_server::{ListenExt, ByteStream, backpressure};
+//! use async_listen::{ListenExt, ByteStream, backpressure};
 //!
 //!
 //! fn main() -> Result<(), Box<dyn Error>> {

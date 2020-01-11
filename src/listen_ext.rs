@@ -38,7 +38,7 @@ pub trait ListenExt: Stream {
     /// # use async_std::prelude::*;
     /// # fn main() -> std::io::Result<()> { async_std::task::block_on(async {
     /// #
-    /// use async_server::ListenExt;
+    /// use async_listen::ListenExt;
     ///
     /// let listener = TcpListener::bind("127.0.0.1:0").await?;
     /// let mut incoming = listener.incoming()
@@ -129,7 +129,7 @@ pub trait ListenExt: Stream {
     /// # use async_std::task;
     /// # fn main() -> std::io::Result<()> { task::block_on(async {
     /// #
-    /// use async_server::ListenExt;
+    /// use async_listen::ListenExt;
     ///
     /// let listener = TcpListener::bind("127.0.0.1:0").await?;
     /// let mut incoming = listener.incoming()
@@ -192,8 +192,8 @@ pub trait ListenExt: Stream {
     /// # use async_std::task;
     /// # fn main() -> std::io::Result<()> { task::block_on(async {
     /// #
-    /// use async_server::ListenExt;
-    /// use async_server::backpressure;
+    /// use async_listen::ListenExt;
+    /// use async_listen::backpressure;
     ///
     /// let listener = TcpListener::bind("127.0.0.1:0").await?;
     /// let (tx, rx) = backpressure::new(10);
@@ -255,7 +255,7 @@ pub trait ListenExt: Stream {
     /// # use async_std::task;
     /// # fn main() -> std::io::Result<()> { task::block_on(async {
     /// #
-    /// use async_server::{ListenExt, ByteStream, backpressure};
+    /// use async_listen::{ListenExt, ByteStream, backpressure};
     ///
     /// let listener = TcpListener::bind("127.0.0.1:0").await?;
     /// let (_, rx) = backpressure::new(10);

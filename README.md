@@ -1,11 +1,11 @@
-# Async Server
+# Async Listen
 
 The crate contains various helpers for writing production-ready servers in
 rust using [async-std](https://async.rs/).
 
-[Docs](https://docs.rs/async-server/) |
-[Github](https://github.com/tailhook/async-server/) |
-[Crate](https://crates.io/crates/async-server)
+[Docs](https://docs.rs/async-listen/) |
+[Github](https://github.com/tailhook/async-listen/) |
+[Crate](https://crates.io/crates/async-listen)
 
 Features:
 * Processing of errors in accept loop

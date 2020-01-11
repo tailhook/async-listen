@@ -321,8 +321,8 @@ impl<S> Backpressure<S> {
 /// # use async_std::task;
 /// # fn main() -> std::io::Result<()> { task::block_on(async {
 /// #
-/// use async_server::ListenExt;
-/// use async_server::backpressure;
+/// use async_listen::ListenExt;
+/// use async_listen::backpressure;
 ///
 /// let listener = TcpListener::bind("127.0.0.1:0").await?;
 /// let (tx, mut rx) = backpressure::new(10);

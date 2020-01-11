@@ -7,7 +7,7 @@ use rand::{Rng, thread_rng};
 use async_std::stream::{from_iter, Stream, StreamExt};
 use async_std::task;
 
-use async_server::{ListenExt, backpressure};
+use async_listen::{ListenExt, backpressure};
 
 fn collect<S: Stream + Unpin>(mut stream: S) -> Vec<S::Item> {
     task::block_on(async {

@@ -3,7 +3,7 @@ use std::io;
 use async_std::stream::{from_iter, Stream, StreamExt};
 use async_std::task;
 
-use async_server::ListenExt;
+use async_listen::ListenExt;
 
 fn collect<S: Stream + Unpin>(mut stream: S) -> Vec<S::Item> {
     task::block_on(async {

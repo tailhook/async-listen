@@ -1,5 +1,5 @@
 [package]
-name = "async-server"
+name = "async-listen"
 description = """
     Various helpers for writing production-ready servers in
     rust using async-std.
@@ -8,8 +8,8 @@ license = "MIT/Apache-2.0"
 readme = "README.md"
 keywords = ["async", "server", "backpressure", "accept", "listen"]
 categories = ["network-programming"]
-homepage = "https://github.com/tailhook/async-server"
-documentation = "https://docs.rs/async-server"
+homepage = "https://github.com/tailhook/async-listen"
+documentation = "https://docs.rs/async-listen"
 version = "0.1.0"
 authors = ["Paul Colomiets <paul@colomiets.name>"]
 edition = "2018"

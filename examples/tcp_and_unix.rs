@@ -9,7 +9,7 @@ use async_std::net::TcpListener;
 use async_std::os::unix::net::UnixListener;
 use async_std::prelude::*;
 
-use async_server::{ListenExt, ByteStream, backpressure};
+use async_listen::{ListenExt, ByteStream, backpressure};
 
 
 fn main() -> Result<(), Box<dyn Error>> {
