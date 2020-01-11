@@ -7,7 +7,7 @@ name: CI
 
 jobs:
   build_and_test:
-    name: Rust project
+    name: Publish a release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
