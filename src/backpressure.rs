@@ -151,16 +151,16 @@ impl Receiver {
     }
 
     fn poll(&mut self, cx: &mut Context) -> Poll<()> {
+        let limit = self.inner.limit.load(Ordering::Acquire);
         loop {
             let active = self.inner.active.load(Ordering::Acquire);
-            let limit = self.inner.limit.load(Ordering::Acquire);
             if active < limit {
-                break;
+                return Poll::Ready(());
             }
             match self.inner.task.try_lock() {
                 Ok(mut guard) => {
                     *guard = Some(cx.waker().clone());
-                    return Poll::Pending;
+                    break;
                 }
                 Err(TryLockError::WouldBlock) => {
                     // This means either another token is currently waking
@@ -176,7 +176,14 @@ impl Receiver {
                 }
             }
         }
-        return Poll::Ready(());
+        // Reread the limit after lock is unlocked because
+        // token Drop relies on that
+        let active = self.inner.active.load(Ordering::Acquire);
+        if active < limit {
+            Poll::Ready(())
+        } else {
+            Poll::Pending
+        }
     }
 }
 
