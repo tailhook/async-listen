@@ -126,13 +126,13 @@
 //! ```
 //!
 //! Setting a limit:
-//! ```
+//! ```console
 //! $ sudo sysctl fs.file-max=1500000
 //! ```
 //!
 //! This only works **until reboot**. On some systems, to preserve this
 //! setting after reboot you can run:
-//! ```
+//! ```console
 //! $ sudo sysctl -w fs.file-max=1500000
 //! ```
 //! (Note `-w`)

@@ -99,7 +99,7 @@ macro_rules! error_match {
 /// ```
 ///
 /// Error message might look like:
-/// ```
+/// ```text
 /// Error: Too many open files (os error 24). Increase per-process open file limit https://big.ly/async-err#EMFILE
 /// ```
 ///
