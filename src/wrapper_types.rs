@@ -3,3 +3,4 @@
 //! Usually we don't need to import these types, but they have to be public.
 pub use crate::log::LogWarnings;
 pub use crate::sleep::HandleErrors;
+pub use crate::error::ErrorHint;

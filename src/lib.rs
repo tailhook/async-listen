@@ -10,6 +10,8 @@
 //! # Utilities
 //! * [ListenExt](trait.ListenExt.html) -- extension trait for stream of
 //!   accepted sockets, provides useful conbinators for a stream
+//! * [error_hint](fn.error_hint.html) -- shows end-user hints no how to fix
+//!   [the most imporant errors](errors/index.html)
 //!
 //! # Low-Level Utilities
 //!
@@ -34,7 +36,7 @@
 //! use async_std::net::TcpListener;
 //! use async_std::prelude::*;
 //!
-//! use async_listen::{ListenExt, ByteStream, backpressure};
+//! use async_listen::{ListenExt, ByteStream, backpressure, error_hint};
 //!
 //!
 //! fn main() -> Result<(), Box<dyn Error>> {
@@ -48,7 +50,10 @@
 //!                 let listener = UnixListener::bind("./example.sock").await?;
 //!                 eprintln!("Accepting connections on ./example.sock");
 //!                 let mut incoming = listener.incoming()
-//!                     .log_warnings(|e| eprintln!("Error: {}. Sleeping 0.5s", e))
+//!                     .log_warnings(|e| {
+//!                         eprintln!("Accept error: {}. Sleeping 0.5s. {}",
+//!                                   e, error_hint(&e));
+//!                     })
 //!                     .handle_errors(Duration::from_millis(500))
 //!                     .backpressure_wrapper(bp);
 //!                 while let Some(stream) = incoming.next().await {
@@ -62,7 +67,10 @@
 //!         let listener = TcpListener::bind("localhost:8080").await?;
 //!         eprintln!("Accepting connections on localhost:8080");
 //!         let mut incoming = listener.incoming()
-//!             .log_warnings(|e| eprintln!("Error: {}. Sleeping 0.5s", e))
+//!             .log_warnings(|e| {
+//!                 eprintln!("Accept error: {}. Sleeping 0.5s. {}",
+//!                           e, error_hint(&e));
+//!             })
 //!             .handle_errors(Duration::from_millis(500))
 //!             .backpressure_wrapper(bp);
 //!         while let Some(stream) = incoming.next().await {
@@ -93,7 +101,8 @@ mod sleep;
 mod byte_stream;
 pub mod backpressure;
 pub mod wrapper_types;
+pub mod errors;
 
 pub use byte_stream::{ByteStream, PeerAddr};
-pub use error::is_transient_error;
+pub use error::{is_transient_error, error_hint};
 pub use listen_ext::ListenExt;
