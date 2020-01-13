@@ -42,13 +42,13 @@ fn test_hint() {
         format!("Error: {}. {}", e, error_hint(&e)),
         "Error: Too many open files (os error 24). \
          Increase per-process open file limit \
-         https://big.ly/async-err#EMFILE");
+         https://bit.ly/async-err#EMFILE");
     let e = io::Error::from_raw_os_error(23);
     assert_eq!(
         format!("Error: {}. {}", e, error_hint(&e)),
         "Error: Too many open files in system (os error 23). \
          Increase system open file limit \
-         https://big.ly/async-err#ENFILE");
+         https://bit.ly/async-err#ENFILE");
     let e = io::ErrorKind::Other.into();
     assert_eq!(
         format!("Error: {}. {}", e, error_hint(&e)),

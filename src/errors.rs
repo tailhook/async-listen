@@ -15,7 +15,7 @@
 //! |---|---|
 //! | Message | `Too many open files (os error 24)` |
 //! | Hint | `Increase per-process open file limit` |
-//! | Link | `https://big.ly/async-err#EMFILE` |
+//! | Link | `https://bit.ly/async-err#EMFILE` |
 //!
 //! ## Common Causes
 //!
@@ -95,7 +95,7 @@
 //! |---|---|
 //! | Message | `Too many open files in system (os error 23)` |
 //! | Hint | `Increase system open file limit` |
-//! | Link | `https://big.ly/async-err#ENFILE` |
+//! | Link | `https://bit.ly/async-err#ENFILE` |
 //!
 //! ## Common Causes
 //!

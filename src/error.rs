@@ -100,7 +100,7 @@ macro_rules! error_match {
 ///
 /// Error message might look like:
 /// ```text
-/// Error: Too many open files (os error 24). Increase per-process open file limit https://big.ly/async-err#EMFILE
+/// Error: Too many open files (os error 24). Increase per-process open file limit https://bit.ly/async-err#EMFILE
 /// ```
 ///
 /// See [error description](errors/index.html) for a list of the errors that
@@ -163,7 +163,7 @@ impl ErrorHint {
 
     /// Returns current base link printed with the hint
     ///
-    /// Current value is `https://big.ly/async-err`. In future versions we
+    /// Current value is `https://bit.ly/async-err`. In future versions we
     /// might change the base if we find a better place to host the docs, but
     /// we don't take this decision lightly.
     ///
@@ -173,7 +173,7 @@ impl ErrorHint {
     /// println!("{}#{}", h.default_link_base(), h.link_hash())
     /// ```
     pub fn default_link_base(&self) -> &'static str {
-        return "https://big.ly/async-err";
+        return "https://bit.ly/async-err";
     }
 
     /// Returns true if the hint is empty
