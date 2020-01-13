@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::pin::Pin;
 use std::task::{Poll, Context};
 
-use futures::io::{AsyncRead, AsyncWrite, IoSlice, IoSliceMut};
+use async_std::io::{Read, Write, IoSlice, IoSliceMut};
 use async_std::net::{TcpStream, Shutdown};
 #[cfg(unix)] use async_std::os::unix::net::UnixStream;
 
@@ -54,7 +54,7 @@ pub struct ByteStream {
     token: Token,
 }
 
-trait Assert: AsyncRead + AsyncWrite + Send + Unpin + 'static { }
+trait Assert: Read + Write + Send + Unpin + 'static { }
 impl Assert for ByteStream {}
 
 impl fmt::Display for PeerAddr {
@@ -174,7 +174,7 @@ impl From<(Token, UnixStream)> for ByteStream {
     }
 }
 
-impl AsyncRead for ByteStream {
+impl Read for ByteStream {
 
     fn poll_read(self: Pin<&mut Self>, cx: &mut Context, buf: &mut [u8])
         -> Poll<Result<usize, io::Error>>
@@ -206,7 +206,7 @@ impl AsyncRead for ByteStream {
     }
 }
 
-impl AsyncRead for &ByteStream {
+impl Read for &ByteStream {
     fn poll_read(self: Pin<&mut Self>, cx: &mut Context, buf: &mut [u8])
         -> Poll<Result<usize, io::Error>>
     {
@@ -236,7 +236,7 @@ impl AsyncRead for &ByteStream {
     }
 }
 
-impl AsyncWrite for ByteStream {
+impl Write for ByteStream {
     fn poll_write(self: Pin<&mut Self>, cx: &mut Context, buf: &[u8])
         -> Poll<Result<usize, io::Error>>
     {
@@ -292,7 +292,7 @@ impl AsyncWrite for ByteStream {
     }
 }
 
-impl AsyncWrite for &ByteStream {
+impl Write for &ByteStream {
     fn poll_write(self: Pin<&mut Self>, cx: &mut Context, buf: &[u8])
         -> Poll<Result<usize, io::Error>>
     {
