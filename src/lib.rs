@@ -50,10 +50,7 @@
 //!                 let listener = UnixListener::bind("./example.sock").await?;
 //!                 eprintln!("Accepting connections on ./example.sock");
 //!                 let mut incoming = listener.incoming()
-//!                     .log_warnings(|e| {
-//!                         eprintln!("Accept error: {}. Sleeping 0.5s. {}",
-//!                                   e, error_hint(&e));
-//!                     })
+//!                     .log_warnings(log_accept_error)
 //!                     .handle_errors(Duration::from_millis(500))
 //!                     .backpressure_wrapper(bp);
 //!                 while let Some(stream) = incoming.next().await {
@@ -67,10 +64,7 @@
 //!         let listener = TcpListener::bind("localhost:8080").await?;
 //!         eprintln!("Accepting connections on localhost:8080");
 //!         let mut incoming = listener.incoming()
-//!             .log_warnings(|e| {
-//!                 eprintln!("Accept error: {}. Sleeping 0.5s. {}",
-//!                           e, error_hint(&e));
-//!             })
+//!             .log_warnings(log_accept_error)
 //!             .handle_errors(Duration::from_millis(500))
 //!             .backpressure_wrapper(bp);
 //!         while let Some(stream) = incoming.next().await {
@@ -89,6 +83,10 @@
 //!     task::sleep(Duration::from_secs(5)).await;
 //!     stream.write_all("hello\n".as_bytes()).await?;
 //!     Ok(())
+//! }
+//!
+//! fn log_accept_error(e: &io::Error) {
+//!     eprintln!("Accept error: {}. Sleeping 0.5s. {}", e, error_hint(&e));
 //! }
 //! ```
 #![warn(missing_debug_implementations)]

@@ -5,7 +5,7 @@ use async_std::task;
 use async_std::net::{TcpListener, TcpStream};
 use async_std::prelude::*;
 
-use async_listen::{ListenExt, backpressure::{self, Token}};
+use async_listen::{ListenExt, backpressure::{self, Token}, error_hint};
 
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -14,7 +14,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         let listener = TcpListener::bind("localhost:8080").await?;
         let mut incoming = listener
             .incoming()
-            .log_warnings(|e| eprintln!("Error: {}. Pausing for 500ms.", e))
+            .log_warnings(|e| {
+                eprintln!("Accept error: {}. Paused listener for 0.5s. {}",
+                          e, error_hint(&e))
+            })
             .handle_errors(Duration::from_millis(500)) // 1
             .apply_backpressure(throttle);
         while let Some(stream) = incoming.next().await { // 2
