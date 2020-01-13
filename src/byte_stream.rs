@@ -176,87 +176,173 @@ impl From<(Token, UnixStream)> for ByteStream {
 
 impl AsyncRead for ByteStream {
 
-    fn poll_read(mut self: Pin<&mut Self>, cx: &mut Context, buf: &mut [u8])
+    fn poll_read(self: Pin<&mut Self>, cx: &mut Context, buf: &mut [u8])
         -> Poll<Result<usize, io::Error>>
     {
-        match &mut self.stream {
-            Stream::Tcp(s) => {
-                unsafe { Pin::new_unchecked(s) }.poll_read(cx, buf)
+        match self.stream {
+            Stream::Tcp(ref s) => {
+                Pin::new(&mut &*s).poll_read(cx, buf)
             }
             #[cfg(unix)]
-            Stream::Unix(s) => {
-                unsafe { Pin::new_unchecked(s) }.poll_read(cx, buf)
+            Stream::Unix(ref s) => {
+                Pin::new(&mut &*s).poll_read(cx, buf)
             }
         }
     }
 
-    fn poll_read_vectored(mut self: Pin<&mut Self>, cx: &mut Context,
+    fn poll_read_vectored(self: Pin<&mut Self>, cx: &mut Context,
         bufs: &mut [IoSliceMut])
         -> Poll<Result<usize, io::Error>>
     {
-        match &mut self.stream {
-            Stream::Tcp(s) => {
-                unsafe { Pin::new_unchecked(s) }.poll_read_vectored(cx, bufs)
+        match self.stream {
+            Stream::Tcp(ref s) => {
+                Pin::new(&mut &*s).poll_read_vectored(cx, bufs)
             }
             #[cfg(unix)]
-            Stream::Unix(s) => {
-                unsafe { Pin::new_unchecked(s) }.poll_read_vectored(cx, bufs)
+            Stream::Unix(ref s) => {
+                Pin::new(&mut &*s).poll_read_vectored(cx, bufs)
+            }
+        }
+    }
+}
+
+impl AsyncRead for &ByteStream {
+    fn poll_read(self: Pin<&mut Self>, cx: &mut Context, buf: &mut [u8])
+        -> Poll<Result<usize, io::Error>>
+    {
+        match self.stream {
+            Stream::Tcp(ref s) => {
+                Pin::new(&mut &*s).poll_read(cx, buf)
+            }
+            #[cfg(unix)]
+            Stream::Unix(ref s) => {
+                Pin::new(&mut &*s).poll_read(cx, buf)
+            }
+        }
+    }
+    fn poll_read_vectored(self: Pin<&mut Self>, cx: &mut Context,
+        bufs: &mut [IoSliceMut])
+        -> Poll<Result<usize, io::Error>>
+    {
+        match self.stream {
+            Stream::Tcp(ref s) => {
+                Pin::new(&mut &*s).poll_read_vectored(cx, bufs)
+            }
+            #[cfg(unix)]
+            Stream::Unix(ref s) => {
+                Pin::new(&mut &*s).poll_read_vectored(cx, bufs)
             }
         }
     }
 }
 
 impl AsyncWrite for ByteStream {
-    fn poll_write(mut self: Pin<&mut Self>, cx: &mut Context, buf: &[u8])
+    fn poll_write(self: Pin<&mut Self>, cx: &mut Context, buf: &[u8])
         -> Poll<Result<usize, io::Error>>
     {
-        match &mut self.stream {
-            Stream::Tcp(s) => {
-                unsafe { Pin::new_unchecked(s) }.poll_write(cx, buf)
+        match self.stream {
+            Stream::Tcp(ref s) => {
+                Pin::new(&mut &*s).poll_write(cx, buf)
             }
             #[cfg(unix)]
-            Stream::Unix(s) => {
-                unsafe { Pin::new_unchecked(s) }.poll_write(cx, buf)
+            Stream::Unix(ref s) => {
+                Pin::new(&mut &*s).poll_write(cx, buf)
             }
         }
     }
-    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context)
+    fn poll_flush(self: Pin<&mut Self>, cx: &mut Context)
         -> Poll<Result<(), io::Error>>
     {
-        match &mut self.stream {
-            Stream::Tcp(s) => {
-                unsafe { Pin::new_unchecked(s) }.poll_flush(cx)
+        match self.stream {
+            Stream::Tcp(ref s) => {
+                Pin::new(&mut &*s).poll_flush(cx)
             }
             #[cfg(unix)]
-            Stream::Unix(s) => {
-                unsafe { Pin::new_unchecked(s) }.poll_flush(cx)
+            Stream::Unix(ref s) => {
+                Pin::new(&mut &*s).poll_flush(cx)
             }
         }
     }
-    fn poll_close(mut self: Pin<&mut Self>, cx: &mut Context)
+    fn poll_close(self: Pin<&mut Self>, cx: &mut Context)
         -> Poll<Result<(), io::Error>>
     {
-        match &mut self.stream {
-            Stream::Tcp(s) => {
-                unsafe { Pin::new_unchecked(s) }.poll_close(cx)
+        match self.stream {
+            Stream::Tcp(ref s) => {
+                Pin::new(&mut &*s).poll_close(cx)
             }
             #[cfg(unix)]
-            Stream::Unix(s) => {
-                unsafe { Pin::new_unchecked(s) }.poll_close(cx)
+            Stream::Unix(ref s) => {
+                Pin::new(&mut &*s).poll_close(cx)
             }
         }
     }
-    fn poll_write_vectored(mut self: Pin<&mut Self>, cx: &mut Context,
+    fn poll_write_vectored(self: Pin<&mut Self>, cx: &mut Context,
         bufs: &[IoSlice])
         -> Poll<Result<usize, io::Error>>
     {
-        match &mut self.stream {
-            Stream::Tcp(s) => {
-                unsafe { Pin::new_unchecked(s) }.poll_write_vectored(cx, bufs)
+        match self.stream {
+            Stream::Tcp(ref s) => {
+                Pin::new(&mut &*s).poll_write_vectored(cx, bufs)
             }
             #[cfg(unix)]
-            Stream::Unix(s) => {
-                unsafe { Pin::new_unchecked(s) }.poll_write_vectored(cx, bufs)
+            Stream::Unix(ref s) => {
+                Pin::new(&mut &*s).poll_write_vectored(cx, bufs)
+            }
+        }
+    }
+}
+
+impl AsyncWrite for &ByteStream {
+    fn poll_write(self: Pin<&mut Self>, cx: &mut Context, buf: &[u8])
+        -> Poll<Result<usize, io::Error>>
+    {
+        match self.stream {
+            Stream::Tcp(ref s) => {
+                Pin::new(&mut &*s).poll_write(cx, buf)
+            }
+            #[cfg(unix)]
+            Stream::Unix(ref s) => {
+                Pin::new(&mut &*s).poll_write(cx, buf)
+            }
+        }
+    }
+    fn poll_flush(self: Pin<&mut Self>, cx: &mut Context)
+        -> Poll<Result<(), io::Error>>
+    {
+        match self.stream {
+            Stream::Tcp(ref s) => {
+                Pin::new(&mut &*s).poll_flush(cx)
+            }
+            #[cfg(unix)]
+            Stream::Unix(ref s) => {
+                Pin::new(&mut &*s).poll_flush(cx)
+            }
+        }
+    }
+    fn poll_close(self: Pin<&mut Self>, cx: &mut Context)
+        -> Poll<Result<(), io::Error>>
+    {
+        match self.stream {
+            Stream::Tcp(ref s) => {
+                Pin::new(&mut &*s).poll_close(cx)
+            }
+            #[cfg(unix)]
+            Stream::Unix(ref s) => {
+                Pin::new(&mut &*s).poll_close(cx)
+            }
+        }
+    }
+    fn poll_write_vectored(self: Pin<&mut Self>, cx: &mut Context,
+        bufs: &[IoSlice])
+        -> Poll<Result<usize, io::Error>>
+    {
+        match self.stream {
+            Stream::Tcp(ref s) => {
+                Pin::new(&mut &*s).poll_write_vectored(cx, bufs)
+            }
+            #[cfg(unix)]
+            Stream::Unix(ref s) => {
+                Pin::new(&mut &*s).poll_write_vectored(cx, bufs)
             }
         }
     }
