@@ -9,7 +9,7 @@ use crate::backpressure::{self, Token};
 use crate::byte_stream::ByteStream;
 
 
-/// An extension trait that provides necessary combinators for turning
+/// An extension trait that provides necessary adapters for turning
 /// a stream of `accept()` events into a full-featured connection listener
 ///
 pub trait ListenExt: Stream {

@@ -9,7 +9,7 @@ use async_std::task::{sleep, Context, Poll};
 
 use crate::is_transient_error;
 
-/// A stream combinator that retries on error
+/// A stream adapter that retries on error
 ///
 /// See
 /// [`ListenExt::sleep_on_error`](../trait.ListenExt.html#method.sleep_on_error)
@@ -39,20 +39,20 @@ impl<S> HandleErrors<S> {
     }
 
     /// Acquires a mutable reference to the underlying stream that this
-    /// combinator is pulling from.
+    /// adapter is pulling from.
     pub fn get_mut(&mut self) -> &mut S {
         &mut self.stream
     }
 
     /// Acquires a pinned mutable reference to the underlying stream that this
-    /// combinator is pulling from.
+    /// adapter is pulling from.
     pub fn get_pin_mut(self: Pin<&mut Self>) -> Pin<&mut S> {
         unsafe {
             self.map_unchecked_mut(|x| &mut x.stream)
         }
     }
 
-    /// Consumes this combinator, returning the underlying stream.
+    /// Consumes this adapter, returning the underlying stream.
     pub fn into_inner(self) -> S {
         self.stream
     }

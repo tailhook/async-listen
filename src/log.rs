@@ -7,7 +7,7 @@ use async_std::task::{Poll, Context};
 
 use crate::is_transient_error;
 
-/// A stream combinator that logs errors which aren't transient
+/// A stream adapter that logs errors which aren't transient
 ///
 /// See
 /// [`ListenExt::log_warnings`](../trait.ListenExt.html#method.log_warnings)
@@ -35,27 +35,27 @@ impl<S, F> LogWarnings<S, F> {
         }
     }
 
-    /// Acquires a reference to the underlying stream that this combinator is
+    /// Acquires a reference to the underlying stream that this adapter is
     /// pulling from.
     pub fn get_ref(&self) -> &S {
         &self.stream
     }
 
     /// Acquires a mutable reference to the underlying stream that this
-    /// combinator is pulling from.
+    /// adapter is pulling from.
     pub fn get_mut(&mut self) -> &mut S {
         &mut self.stream
     }
 
     /// Acquires a pinned mutable reference to the underlying stream that this
-    /// combinator is pulling from.
+    /// adapter is pulling from.
     pub fn get_pin_mut(self: Pin<&mut Self>) -> Pin<&mut S> {
         unsafe {
             self.map_unchecked_mut(|x| &mut x.stream)
         }
     }
 
-    /// Consumes this combinator, returning the underlying stream.
+    /// Consumes this adapter, returning the underlying stream.
     pub fn into_inner(self) -> S {
         self.stream
     }

@@ -27,21 +27,21 @@ struct Inner {
     task: Mutex<Option<Waker>>,
 }
 
-/// A stream combinator that applies backpressure
+/// A stream adapter that applies backpressure
 ///
 /// See
 /// [`ListenExt::backpressure`](../trait.ListenExt.html#method.backpressure)
 /// for more info.
 pub struct BackpressureToken<S>(Backpressure<S>);
 
-/// A stream combinator that applies backpressure and yields ByteStream
+/// A stream adapter that applies backpressure and yields ByteStream
 ///
 /// See
 /// [`ListenExt::backpressure_wrapper`](../trait.ListenExt.html#method.backpressure_wrapper)
 /// for more info.
 pub struct BackpressureWrapper<S>(Backpressure<S>);
 
-/// A stream combinator that applies backpressure and yields a token
+/// A stream adapter that applies backpressure and yields a token
 ///
 /// See
 /// [`ListenExt::apply_backpressure`](../trait.ListenExt.html#method.apply_backpressure)
@@ -218,27 +218,27 @@ impl<S> BackpressureToken<S> {
         BackpressureToken(Backpressure::new(stream, backpressure))
     }
 
-    /// Acquires a reference to the underlying stream that this combinator is
+    /// Acquires a reference to the underlying stream that this adapter is
     /// pulling from.
     pub fn get_ref(&self) -> &S {
         self.0.get_ref()
     }
 
     /// Acquires a mutable reference to the underlying stream that this
-    /// combinator is pulling from.
+    /// adapter is pulling from.
     pub fn get_mut(&mut self) -> &mut S {
         self.0.get_mut()
     }
 
     /// Acquires a pinned mutable reference to the underlying stream that this
-    /// combinator is pulling from.
+    /// adapter is pulling from.
     pub fn get_pin_mut(self: Pin<&mut Self>) -> Pin<&mut S> {
         unsafe {
             self.map_unchecked_mut(|x| &mut x.0.stream)
         }
     }
 
-    /// Consumes this combinator, returning the underlying stream.
+    /// Consumes this adapter, returning the underlying stream.
     pub fn into_inner(self) -> S {
         self.0.into_inner()
     }
@@ -251,27 +251,27 @@ impl<S> BackpressureWrapper<S> {
         BackpressureWrapper(Backpressure::new(stream, backpressure))
     }
 
-    /// Acquires a reference to the underlying stream that this combinator is
+    /// Acquires a reference to the underlying stream that this adapter is
     /// pulling from.
     pub fn get_ref(&self) -> &S {
         self.0.get_ref()
     }
 
     /// Acquires a mutable reference to the underlying stream that this
-    /// combinator is pulling from.
+    /// adapter is pulling from.
     pub fn get_mut(&mut self) -> &mut S {
         self.0.get_mut()
     }
 
     /// Acquires a pinned mutable reference to the underlying stream that this
-    /// combinator is pulling from.
+    /// adapter is pulling from.
     pub fn get_pin_mut(self: Pin<&mut Self>) -> Pin<&mut S> {
         unsafe {
             self.map_unchecked_mut(|x| &mut x.0.stream)
         }
     }
 
-    /// Consumes this combinator, returning the underlying stream.
+    /// Consumes this adapter, returning the underlying stream.
     pub fn into_inner(self) -> S {
         self.0.into_inner()
     }
@@ -282,27 +282,27 @@ impl<S> Backpressure<S> {
         Backpressure { stream, backpressure }
     }
 
-    /// Acquires a reference to the underlying stream that this combinator is
+    /// Acquires a reference to the underlying stream that this adapter is
     /// pulling from.
     pub fn get_ref(&self) -> &S {
         &self.stream
     }
 
     /// Acquires a mutable reference to the underlying stream that this
-    /// combinator is pulling from.
+    /// adapter is pulling from.
     pub fn get_mut(&mut self) -> &mut S {
         &mut self.stream
     }
 
     /// Acquires a pinned mutable reference to the underlying stream that this
-    /// combinator is pulling from.
+    /// adapter is pulling from.
     pub fn get_pin_mut(self: Pin<&mut Self>) -> Pin<&mut S> {
         unsafe {
             self.map_unchecked_mut(|x| &mut x.stream)
         }
     }
 
-    /// Consumes this combinator, returning the underlying stream.
+    /// Consumes this adapter, returning the underlying stream.
     pub fn into_inner(self) -> S {
         self.stream
     }
