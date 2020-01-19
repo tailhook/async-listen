@@ -91,6 +91,7 @@
 //! ```
 #![warn(missing_debug_implementations)]
 #![warn(missing_docs)]
+#![forbid(unsafe_code)]
 
 mod error;
 mod listen_ext;

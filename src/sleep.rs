@@ -44,14 +44,6 @@ impl<S> HandleErrors<S> {
         &mut self.stream
     }
 
-    /// Acquires a pinned mutable reference to the underlying stream that this
-    /// adapter is pulling from.
-    pub fn get_pin_mut(self: Pin<&mut Self>) -> Pin<&mut S> {
-        unsafe {
-            self.map_unchecked_mut(|x| &mut x.stream)
-        }
-    }
-
     /// Consumes this adapter, returning the underlying stream.
     pub fn into_inner(self) -> S {
         self.stream
@@ -73,7 +65,7 @@ impl<I, S> Stream for HandleErrors<S>
         }
         self.timeout = None;
         loop {
-            match self.as_mut().get_pin_mut().poll_next(cx) {
+            match Pin::new(&mut self.stream).poll_next(cx) {
                 Poll::Pending => return Poll::Pending,
                 Poll::Ready(Some(Ok(v))) => return Poll::Ready(Some(v)),
                 Poll::Ready(None) => return Poll::Ready(None),

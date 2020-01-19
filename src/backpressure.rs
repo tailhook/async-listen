@@ -230,14 +230,6 @@ impl<S> BackpressureToken<S> {
         self.0.get_mut()
     }
 
-    /// Acquires a pinned mutable reference to the underlying stream that this
-    /// adapter is pulling from.
-    pub fn get_pin_mut(self: Pin<&mut Self>) -> Pin<&mut S> {
-        unsafe {
-            self.map_unchecked_mut(|x| &mut x.0.stream)
-        }
-    }
-
     /// Consumes this adapter, returning the underlying stream.
     pub fn into_inner(self) -> S {
         self.0.into_inner()
@@ -263,14 +255,6 @@ impl<S> BackpressureWrapper<S> {
         self.0.get_mut()
     }
 
-    /// Acquires a pinned mutable reference to the underlying stream that this
-    /// adapter is pulling from.
-    pub fn get_pin_mut(self: Pin<&mut Self>) -> Pin<&mut S> {
-        unsafe {
-            self.map_unchecked_mut(|x| &mut x.0.stream)
-        }
-    }
-
     /// Consumes this adapter, returning the underlying stream.
     pub fn into_inner(self) -> S {
         self.0.into_inner()
@@ -292,14 +276,6 @@ impl<S> Backpressure<S> {
     /// adapter is pulling from.
     pub fn get_mut(&mut self) -> &mut S {
         &mut self.stream
-    }
-
-    /// Acquires a pinned mutable reference to the underlying stream that this
-    /// adapter is pulling from.
-    pub fn get_pin_mut(self: Pin<&mut Self>) -> Pin<&mut S> {
-        unsafe {
-            self.map_unchecked_mut(|x| &mut x.stream)
-        }
     }
 
     /// Consumes this adapter, returning the underlying stream.
@@ -438,7 +414,7 @@ impl<I, S> Stream for Backpressure<S>
     {
         match self.backpressure.poll(cx) {
             Poll::Pending => Poll::Pending,
-            Poll::Ready(()) => self.as_mut().get_pin_mut().poll_next(cx),
+            Poll::Ready(()) => Pin::new(&mut self.stream).poll_next(cx),
         }
     }
 }
@@ -457,7 +433,7 @@ impl<I, S> Stream for BackpressureToken<S>
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context)
         -> Poll<Option<Self::Item>>
     {
-        unsafe { self.as_mut().map_unchecked_mut(|x| &mut x.0) }
+        Pin::new(&mut self.0)
         .poll_next(cx)
         .map(|opt| opt.map(|conn| (self.0.backpressure.token(), conn)))
     }
@@ -471,7 +447,7 @@ impl<I, S> Stream for BackpressureWrapper<S>
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context)
         -> Poll<Option<Self::Item>>
     {
-        unsafe { self.as_mut().map_unchecked_mut(|x| &mut x.0) }
+        Pin::new(&mut self.0)
         .poll_next(cx)
         .map(|opt| opt.map(|conn| {
             ByteStream::from((self.0.backpressure.token(), conn))

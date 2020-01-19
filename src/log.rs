@@ -47,14 +47,6 @@ impl<S, F> LogWarnings<S, F> {
         &mut self.stream
     }
 
-    /// Acquires a pinned mutable reference to the underlying stream that this
-    /// adapter is pulling from.
-    pub fn get_pin_mut(self: Pin<&mut Self>) -> Pin<&mut S> {
-        unsafe {
-            self.map_unchecked_mut(|x| &mut x.stream)
-        }
-    }
-
     /// Consumes this adapter, returning the underlying stream.
     pub fn into_inner(self) -> S {
         self.stream
@@ -69,7 +61,7 @@ impl<I, S, F> Stream for LogWarnings<S, F>
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context)
         -> Poll<Option<Self::Item>>
     {
-        let res = self.as_mut().get_pin_mut().poll_next(cx);
+        let res = Pin::new(&mut self.stream).poll_next(cx);
         match &res {
             Poll::Ready(Some(Err(e))) if !is_transient_error(e)
             => (self.get_mut().logger)(e),
