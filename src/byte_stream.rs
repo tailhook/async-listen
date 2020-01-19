@@ -51,7 +51,7 @@ pub enum PeerAddr {
 #[derive(Debug)]
 pub struct ByteStream {
     stream: Stream,
-    token: Token,
+    token: Option<Token>,
 }
 
 trait Assert: Read + Write + Send + Unpin + 'static { }
@@ -72,7 +72,20 @@ impl ByteStream {
     pub fn new_tcp(token: Token, stream: TcpStream) -> ByteStream {
         ByteStream {
             stream: Stream::Tcp(stream),
-            token,
+            token: Some(token),
+        }
+    }
+
+    /// Create a bytestream for a tcp socket (without token)
+    ///
+    /// This can be used with interfaces that require a `ByteStream` but
+    /// aren't got from the listener that have backpressure applied. For
+    /// example, if you have two listeners in the single app or even for
+    /// client connections.
+    pub fn new_tcp_detached(stream: TcpStream) -> ByteStream {
+        ByteStream {
+            stream: Stream::Tcp(stream),
+            token: None,
         }
     }
 
@@ -81,7 +94,21 @@ impl ByteStream {
     pub fn new_unix(token: Token, stream: UnixStream) -> ByteStream {
         ByteStream {
             stream: Stream::Unix(stream),
-            token,
+            token: Some(token),
+        }
+    }
+
+    /// Create a bytestream for a unix socket (without token)
+    ///
+    /// This can be used with interfaces that require a `ByteStream` but
+    /// aren't got from the listener that have backpressure applied. For
+    /// example, if you have two listeners in the single app or even for
+    /// client connections.
+    #[cfg(unix)]
+    pub fn new_unix_detached(stream: UnixStream) -> ByteStream {
+        ByteStream {
+            stream: Stream::Unix(stream),
+            token: None,
         }
     }
 
