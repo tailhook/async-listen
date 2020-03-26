@@ -109,7 +109,7 @@ pub trait ListenExt: Stream {
     /// The output stream yields pairs of (token, stream). The token must
     /// be kept alive as long as connection is still alive.
     ///
-    /// See [`backpressuree_wrapper`](#method.backpressure_wrapper) method for
+    /// See [`backpressure_wrapper`](#method.backpressure_wrapper) method for
     /// a simple way of handling backpressure in a common case.
     ///
     /// `stream.backpressure(10)` is equivalent of:
