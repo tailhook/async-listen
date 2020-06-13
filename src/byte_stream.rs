@@ -48,6 +48,13 @@ pub enum PeerAddr {
 ///
 /// The structure implements AsyncRead and AsyncWrite so can be used for
 /// protocol implementation directly.
+///
+/// # Notes on Cloning
+///
+/// Cloning a `ByteStream` is a shallow clone, both resulting `ByteStream`
+/// structures hold the same backpressure token (and the same underlying OS socket).
+/// The backpressure slot will be freed (which means new connection can be accepted)
+/// when the last clone of `ByteStream` is dropped.
 #[derive(Debug, Clone)]
 pub struct ByteStream {
     stream: Stream,
