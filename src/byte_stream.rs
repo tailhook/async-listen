@@ -12,7 +12,7 @@ use async_std::net::{TcpStream, Shutdown};
 use crate::backpressure::Token;
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum Stream {
     Tcp(TcpStream),
     #[cfg(unix)]
@@ -48,7 +48,7 @@ pub enum PeerAddr {
 ///
 /// The structure implements AsyncRead and AsyncWrite so can be used for
 /// protocol implementation directly.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ByteStream {
     stream: Stream,
     token: Option<Token>,

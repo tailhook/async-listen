@@ -74,6 +74,7 @@ pub struct Sender {
 }
 
 /// The token which holds onto a single resource item
+#[derive(Clone)]
 pub struct Token {
     inner: Arc<Inner>,
 }
