@@ -74,6 +74,11 @@ pub struct Sender {
 }
 
 /// The token which holds onto a single resource item
+///
+/// # Notes on Cloning
+///
+/// After cloning a `Token`, *both* clones have to be dropped to make
+/// backpressure slot available again.
 #[derive(Clone)]
 pub struct Token {
     inner: Arc<Inner>,
